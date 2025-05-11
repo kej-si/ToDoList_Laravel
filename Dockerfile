@@ -8,9 +8,19 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    default-mysql-client
+    default-mysql-client \
+    libssl-dev \
+    pkg-config \
+    gnupg
 
+RUN curl -fsSL https://pgp.mongodb.com/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg && \
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/debian bullseye/mongodb-org/6.0 main" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list && \
+    apt-get update && apt-get install -y mongodb-mongosh
+    
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN pecl install mongodb-1.15.0 && \
+    docker-php-ext-enable mongodb
 
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
@@ -20,7 +30,7 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install
+RUN composer install --ignore-platform-req=ext-mongodb
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 

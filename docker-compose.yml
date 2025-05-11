@@ -17,10 +17,18 @@ services:
       - DB_DATABASE=todolist
       - DB_USERNAME=admin
       - DB_PASSWORD=laravel
+      - MONGODB_CONNECTION=mongodb
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=todolist
+      - MONGODB_USERNAME=admin
+      - MONGODB_PASSWORD=laravel
     networks:
       - todolist-network
     depends_on:
       db:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
     ports:
       - "80:80"
@@ -39,9 +47,29 @@ services:
     networks:
       - todolist-network
     ports:
-      - "3306:3306"
+      - "3307:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "admin", "-plaravel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:latest
+    container_name: todolist-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: todolist
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: laravel
+    volumes:
+      - my-todolist-mongodb-data:/data/db
+    networks:
+      - todolist-network
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 5s
       timeout: 5s
       retries: 5
@@ -52,4 +80,9 @@ networks:
 
 volumes:
   my-todolist-mysql-data:
+    driver: local
+  my-todolist-mongodb-data:
     driver: local 
+
+
+    
