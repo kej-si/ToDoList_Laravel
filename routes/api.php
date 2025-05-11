@@ -15,5 +15,8 @@ Route::post('auth/reset-password', [KejsiController::class, 'resetPassword']);
 
 //task controlelr
 Route::middleware(['auth.jwt'])->group(function () {
+    Route::get('tasks/with-attributes', [TaskController::class, 'getTaskWithAttributes']);
     Route::apiResource('tasks', TaskController::class);
+    Route::post('tasks/{task}/attributes', [TaskController::class, 'addAttribute']);
+    Route::get('tasks/{task}/attributes', [TaskController::class, 'getTaskAttributes']);
 });

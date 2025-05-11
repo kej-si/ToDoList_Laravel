@@ -6,7 +6,8 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-
+use App\Models\TodoAttribute;
+use Illuminate\Support\Facades\Log;
 class TaskController extends Controller
 {
     /**
@@ -116,4 +117,62 @@ class TaskController extends Controller
             'data' => $task
         ]);
     }
+
+    /**
+     * Add an attribute to the specified task.
+     */
+    public function addAttribute(Request $request, Task $task): JsonResponse
+    {
+        $this->authorize('update', $task);
+
+        $task = Task::findOrFail($task->id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'value' => 'required|string|max:255',
+        ]);
+
+        $attribute = new TodoAttribute([
+            'name' => $validated['name'],
+            'value' => $validated['value'],
+            'task_id' => $task->id,
+        ]);
+
+        $task->attributes()->save($attribute);
+
+        return response()->json($attribute, 201);
+    }
+
+
+    /**
+     * List all tasks with their attributes.
+     */
+    public function getTaskWithAttributes(): JsonResponse
+{
+    $tasks = Task::where('user_id', Auth::id())->get();
+
+    // Manually attach attributes
+    $tasks->each(function ($task) {
+        $task->attributes = $task->attributes()->get();
+    });
+
+    return response()->json(['data' => $tasks]);
+
+ 
+}
+    /**
+     * Get the attributes for the specified task.
+     */
+    public function getTaskAttributes(Task $task): JsonResponse
+    {
+        $attributes = $task->attributes;
+        return response()->json(['data' => $attributes]);
+    }
+
+    public function test(): JsonResponse
+    {
+        return response()->json(['data' => 'test']);
+    }
+
+
 }

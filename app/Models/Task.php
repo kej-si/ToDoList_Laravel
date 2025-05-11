@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\HybridRelations;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, HybridRelations;
 
     /**
      * The table associated with the model.
@@ -18,6 +19,7 @@ class Task extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'id',
         'title',
         'description',
         'due_date',
@@ -38,5 +40,13 @@ class Task extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the attributes for the task.
+     */
+    public function attributes()
+    {
+        return $this->hasMany(TodoAttribute::class, 'task_id', 'id');
     }
 }
