@@ -148,18 +148,14 @@ class TaskController extends Controller
      * List all tasks with their attributes.
      */
     public function getTaskWithAttributes(): JsonResponse
-{
-    $tasks = Task::where('user_id', Auth::id())->get();
-
-    // Manually attach attributes
-    $tasks->each(function ($task) {
-        $task->attributes = $task->attributes()->get();
-    });
-
-    return response()->json(['data' => $tasks]);
-
- 
-}
+    {
+        $tasks = Task::with('attributes')
+            ->where('user_id', Auth::id())
+            ->get();
+    
+        return response()->json(['data' => $tasks]);
+    }
+    
     /**
      * Get the attributes for the specified task.
      */
